@@ -2,7 +2,7 @@
 
 一个油猴（Tampermonkey）脚本：在 [OpenRouter](https://openrouter.ai) 模型详情页上补两个页面本身没直接告诉你的信息——能否关闭推理、默认推理等级是哪个，不用再去翻 API。
 
-![version](https://img.shields.io/badge/version-1.0.1-blue)
+![version](https://img.shields.io/badge/version-1.0.2-blue)
 
 ## 显示什么
 
@@ -31,6 +31,7 @@
 - REASONING 卡是克隆 RELEASED 卡的 DOM 换掉文字得到的，class 与原生卡完全一致，样式随网站走；找不到统计卡行时会退化为标题下的一行紧凑文本（含默认等级）
 - 下拉标记的做法：监听页面 DOM 变化，当某个菜单容器里同时出现至少 3 个裸等级名（Low / Medium / High / Extra high / Max 等）时判定为 Reasoning effort 列表，再给默认等级项加 `*`；其他下拉（如 Standard / P50）不含这些名字，不会被误标；重复触发不会叠加多个 `*`
 - OpenRouter 是 SPA：脚本监听地址变化以处理站内跳转；兼容模型子页（如 `/<provider>/<model>/api`）与 `:free`、`:batch` 等 id 后缀；页面重渲染把卡片冲掉时会自动补插
+- 查目录时先精确匹配完整 id（`:free`、`:batch` 等真实变体用自己的条目）；查不到时剥掉模型名后的 `:` 后缀再查本体，使 `:floor`、`:nitro` 这类只有路由含义、目录里没有条目的后缀也能正常工作
 - 候选 id 在模型目录中不存在的页面（如设置页）不会显示卡片
 
 ## 示例（2026-10-12 的接口数据）

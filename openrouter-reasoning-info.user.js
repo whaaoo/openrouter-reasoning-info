@@ -2,7 +2,7 @@
 // @name         OpenRouter 模型页显示推理信息
 // @name:en      OpenRouter: Show Reasoning Info on Model Page
 // @namespace    https://openrouter.ai/
-// @version      1.0.1
+// @version      1.0.2
 // @description  在 OpenRouter 模型详情页做两件事：(1) 在 RELEASED 卡片后插入同款 REASONING 卡，显示能否关闭推理；(2) 在 Providers 区自带的 Reasoning effort 下拉里给默认等级加 * 标记，折叠后的按钮显示该等级时同样带 *。数据来自官方公开接口 GET /api/v1/models，无需 API Key。
 // @description:en On OpenRouter model pages: (1) adds a native-style REASONING card after the RELEASED card showing whether reasoning can be disabled; (2) marks the default effort with * in the page's own Providers "Reasoning effort" dropdown. Data comes from the public GET /api/v1/models endpoint. No API key needed.
 // @match        https://openrouter.ai/*
@@ -87,6 +87,22 @@
     var def = reasoning.default_effort;
     if (typeof def !== 'string' || !def) return null;
     return EFFORT_LABELS[def] || (def.charAt(0).toUpperCase() + def.slice(1));
+  }
+
+  // Resolve the catalog entry for a page's model id.
+  // Exact match first, so real catalog variants (:free, :batch) use their own
+  // entry. Routing suffixes (:floor, :nitro) have no catalog entry at all —
+  // they only change provider routing, not the model — so on an exact miss,
+  // strip a ":" suffix from the model segment and retry with the base id.
+  function resolveEntry(byId, modelId) {
+    if (!byId || !modelId) return null;
+    if (byId[modelId]) return byId[modelId];
+    var slash = modelId.indexOf('/');
+    var colon = modelId.indexOf(':', slash + 1);
+    if (colon > slash) {
+      return byId[modelId.slice(0, colon)] || null;
+    }
+    return null;
   }
   // === TESTABLE END ===
 
@@ -354,7 +370,7 @@
     var seq = ++renderSeq;
     loadModels().then(function (byId) {
       if (seq !== renderSeq) return;
-      var entry = byId[modelId];
+      var entry = resolveEntry(byId, modelId);
       if (!entry) {
         removeOurNodes();
         return;
