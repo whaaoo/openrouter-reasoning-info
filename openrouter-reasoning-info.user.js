@@ -91,16 +91,19 @@
 
   // Resolve the catalog entry for a page's model id.
   // Exact match first, so real catalog variants (:free, :batch) use their own
-  // entry. Routing suffixes (:floor, :nitro) have no catalog entry at all —
-  // they only change provider routing, not the model — so on an exact miss,
-  // strip a ":" suffix from the model segment and retry with the base id.
+  // entry. Only the routing suffixes :floor and :nitro fall back to the base
+  // model: they have no catalog entry at all and only change provider routing,
+  // not the model. Any other suffix is left alone — an exact miss stays a miss.
   function resolveEntry(byId, modelId) {
     if (!byId || !modelId) return null;
     if (byId[modelId]) return byId[modelId];
     var slash = modelId.indexOf('/');
     var colon = modelId.indexOf(':', slash + 1);
     if (colon > slash) {
-      return byId[modelId.slice(0, colon)] || null;
+      var suffix = modelId.slice(colon + 1);
+      if (suffix === 'floor' || suffix === 'nitro') {
+        return byId[modelId.slice(0, colon)] || null;
+      }
     }
     return null;
   }
